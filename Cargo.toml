@@ -1,0 +1,9 @@
+[package]
+name = "jingle"
+version = "0.1.0"
+authors = ["GordonShumway <Stefan.Steg@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+rppal = "0.10"
+time = "0.1.42"
