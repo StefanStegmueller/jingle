@@ -1,5 +1,7 @@
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
+extern crate lazy_static;
 extern crate time;
 
 use rppal::gpio;
@@ -41,7 +43,7 @@ fn run(config: config::Config) -> Result<(), Box<dyn Error>> {
     loop {
         let jingle = file_reader::read(&config.filename).expect("error reading file");
         play_jinge(&mut pin, jingle);
-        
+
         thread::sleep(Duration::from_secs(2));
     }
 }
@@ -63,7 +65,7 @@ fn play_jinge(mut pin: &mut gpio::OutputPin, jingle: Vec<file_reader::Record>) {
         });
         let duration_millis = record.duration;
 
-        if hz == notes::MUTE {
+        if notes::is_mute(hz) {
             println!("Pause for {} ms", duration_millis);
             thread::sleep(Duration::from_millis(duration_millis as u64));
         } else {
