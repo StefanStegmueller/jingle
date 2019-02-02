@@ -85,12 +85,8 @@ fn gen_frequency(mut pin: &mut gpio::OutputPin, f_hz: f64, duration_millis: u64)
 
     let start_time = current_time_millis();
     let end_time = start_time + duration_millis;
-    let duration_micros = (duration_millis * 1000) as f64;
 
     while current_time_millis() < end_time {
-        let x_micros = ((current_time_millis() - start_time) * 1000) as f64;
-
-        //let t_trans = freq_transform::saw(x_micros, t_micros, duration_micros);
         gen_period(&mut pin, t_micros);
     }
 }
