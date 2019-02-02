@@ -82,18 +82,17 @@ fn gen_frequency(mut pin: &mut gpio::OutputPin, f_hz: f64, duration_millis: u64)
 
     let t = 1.00 / f_hz;
     let t_micros = t * 1000000.0;
+    let t_half_micros = t_micros / 2.0;
 
     let start_time = current_time_millis();
     let end_time = start_time + duration_millis;
 
     while current_time_millis() < end_time {
-        gen_period(&mut pin, t_micros);
+        gen_period(&mut pin, t_half_micros);
     }
 }
 
-fn gen_period(pin: &mut gpio::OutputPin, t_micros: f64) {
-    let t_half_micros = t_micros / 2.0;
-
+fn gen_period(pin: &mut gpio::OutputPin, t_half_micros: f64) {
     pin.set_high();
     thread::sleep(Duration::from_micros(t_half_micros as u64));
     pin.set_low();
