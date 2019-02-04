@@ -1,4 +1,6 @@
 #[macro_use]
+extern crate clap;
+#[macro_use]
 extern crate serde_derive;
 #[macro_use]
 extern crate lazy_static;
@@ -6,7 +8,6 @@ extern crate time;
 
 use rppal::gpio;
 use rppal::gpio::Gpio;
-use std::env;
 use std::error::Error;
 use std::process;
 use std::thread;
@@ -19,12 +20,7 @@ mod notes;
 const GPIO_AUDIO: u8 = 2;
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-
-    let config = config::Config::new(&args).unwrap_or_else(|err| {
-        println!("Problem parsing arguments: {}", err);
-        process::exit(1);
-    });;
+    let config = config::Config::new();
 
     if let Err(e) = run(config) {
         println!("Application error: {}", e);
