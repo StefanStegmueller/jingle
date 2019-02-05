@@ -17,10 +17,11 @@ mod config;
 mod file_reader;
 mod notes;
 
-const GPIO_AUDIO: u8 = 2;
-
 fn main() {
-    let config = config::Config::new();
+    let config = config::Config::new().unwrap_or_else(|err| {
+        println!("Problem parsing arguments: {}", err);
+        process::exit(1);
+    });;
 
     if let Err(e) = run(config) {
         println!("Application error: {}", e);
@@ -30,8 +31,8 @@ fn main() {
 }
 
 fn run(config: config::Config) -> Result<(), Box<dyn Error>> {
-    println!("Starting audio output on pin {}.", GPIO_AUDIO);
-    let mut pin = init_pin().expect("failed to initialize pin");
+    println!("Starting audio output on pin {}.", config.gpio);
+    let mut pin = init_pin(config.gpio).expect("failed to initialize pin");
 
     println!("Using jingle of file {}.", config.filename);
 
@@ -43,8 +44,8 @@ fn run(config: config::Config) -> Result<(), Box<dyn Error>> {
     }
 }
 
-fn init_pin() -> Result<(gpio::OutputPin), Box<dyn Error>> {
-    let mut pin = Gpio::new()?.get(GPIO_AUDIO)?.into_output();
+fn init_pin(gpio: u8) -> Result<(gpio::OutputPin), Box<dyn Error>> {
+    let mut pin = Gpio::new()?.get(gpio)?.into_output();
 
     pin.toggle();
     thread::sleep(Duration::from_millis(1000));
@@ -53,7 +54,7 @@ fn init_pin() -> Result<(gpio::OutputPin), Box<dyn Error>> {
     Ok(pin)
 }
 
-fn play_jinge(mut pin: &mut gpio::OutputPin, jingle: Vec<file_reader::Record>, duty_cycle: u32) {
+fn play_jinge(mut pin: &mut gpio::OutputPin, jingle: Vec<file_reader::Record>, duty_cycle: u8) {
     for record in jingle.iter() {
         let hz = notes::parse_note(&record.note).unwrap_or_else(|error| {
             panic!("failed to parse note [{}]: {:?}", record.note, error);
@@ -69,7 +70,7 @@ fn play_jinge(mut pin: &mut gpio::OutputPin, jingle: Vec<file_reader::Record>, d
     }
 }
 
-fn gen_frequency(mut pin: &mut gpio::OutputPin, f_hz: f64, duration_millis: u64, duty_cycle: u32) {
+fn gen_frequency(mut pin: &mut gpio::OutputPin, f_hz: f64, duration_millis: u64, duty_cycle: u8) {
     println!(
         "Generate frequency with {} hz for {} ms",
         f_hz, duration_millis
