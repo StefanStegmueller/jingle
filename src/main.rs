@@ -34,14 +34,14 @@ fn main() {
 fn run(config: config::Config) -> Result<(), Box<dyn Error>> {
     let output: Box<AudioOut> = match config.mode {
         Mode::Digital => DigitalOut::new(config.gpio, config.duty_cycle)?,
-        Mode::Analog => AnalogOut::new(config.i2c_address, config.gpio_sda, config.gpio_scl)?,
+        Mode::Analog => AnalogOut::new(config.i2c_address)?,
     };
 
     println!("Using jingle of file {}.", config.filename);
 
     loop {
         let jingle = file_reader::read(&config.filename).expect("error reading file");
-        output.play(jingle);
+        output.play(jingle)?;
 
         thread::sleep(Duration::from_secs(2));
     }

@@ -16,9 +16,7 @@ pub struct Config {
     pub mode: Mode,
     pub gpio: u8,
     pub duty_cycle: u8,
-    pub i2c_address: u8,
-    pub gpio_sda: u8,
-    pub gpio_scl: u8,
+    pub i2c_address: u16,
 }
 
 impl Config {
@@ -60,22 +58,6 @@ impl Config {
                     .default_value("62")
                     .help("Sets the i2c address (hex) for dac to use"),
             )
-            .arg(
-                Arg::with_name("sda")
-                    .short("a")
-                    .long("gpiosda")
-                    .takes_value(true)
-                    .default_value("2")
-                    .help("Sets the i2c-sda gpio pin for dac to use"),
-            )
-            .arg(
-                Arg::with_name("scl")
-                    .short("l")
-                    .long("gpioscl")
-                    .takes_value(true)
-                    .default_value("3")
-                    .help("Sets the i2c-scl gpio pin for dac to use"),
-            )
             .get_matches();
 
         let filename = matches.value_of("JINGLEFILE").unwrap();
@@ -91,11 +73,7 @@ impl Config {
         let i2c_address = hex::decode(i2c_address_str)
             .unwrap()
             .iter()
-            .fold(0, |acc, x| acc * 10 + x);
-
-        let gpio_sda = value_t!(matches, "sda", u8).unwrap();
-
-        let gpio_scl = value_t!(matches, "scl", u8).unwrap();
+            .fold(0, |acc, x| acc * 10 + x) as u16;
 
         Ok(Config {
             filename: file_name_str,
@@ -103,8 +81,6 @@ impl Config {
             gpio,
             duty_cycle,
             i2c_address,
-            gpio_sda,
-            gpio_scl,
         })
     }
 }
