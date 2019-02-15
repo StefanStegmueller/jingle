@@ -40,7 +40,7 @@ fn run(config: config::Config) -> Result<(), Box<dyn Error>> {
     println!("Using jingle of file {}.", config.filename);
 
     loop {
-        let jingle = file_reader::read(&config.filename).expect("error reading file");
+        let jingle = file_reader::read(&config.filename)?;
         output.play(jingle)?;
 
         thread::sleep(Duration::from_secs(2));
