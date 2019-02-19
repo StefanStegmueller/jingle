@@ -14,8 +14,10 @@ arg_enum! {
 arg_enum! {
     #[derive(Debug)]
     pub enum Wave {
+        Rectangle,
         Sine,
-        Triangle
+        Triangle,
+        Saw,
     }
 }
 
@@ -52,7 +54,7 @@ impl Config {
                     .takes_value(true)
                     .default_value("2")
                     .validator(is_gpio)
-                    .help("Sets the gpio pin to use"),
+                    .help("Sets the gpio pin for digital output"),
             )
             .arg(
                 Arg::with_name("duty")
@@ -61,7 +63,7 @@ impl Config {
                     .takes_value(true)
                     .default_value("50")
                     .validator(is_duty)
-                    .help("Sets the duty cycle"),
+                    .help("Sets the duty cycle for digital output"),
             )
             .arg(
                 Arg::with_name("i2caddress")
@@ -69,7 +71,7 @@ impl Config {
                     .long("i2caddress")
                     .takes_value(true)
                     .default_value("62")
-                    .help("Sets the i2c address (hex) for dac to use"),
+                    .help("Sets the i2c address (hex) for analog output with dac"),
             )
             .arg(
                 Arg::with_name("wave")
@@ -77,7 +79,7 @@ impl Config {
                     .long("wave")
                     .possible_values(&Wave::variants())
                     .case_insensitive(true)
-                    .default_value("Sine")
+                    .default_value("Rectangle")
                     .help("Sets the wave form for analog output"),
             )
             .get_matches();

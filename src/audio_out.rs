@@ -41,7 +41,7 @@ impl DigitalOut {
             duty: duty,
         }))
     }
- 
+
     fn gen_period(&self, t_high_micros: f64, t_low_micros: f64) {
         self.pin.borrow_mut().set_high();
         thread::sleep(Duration::from_micros(t_high_micros as u64));
@@ -78,8 +78,10 @@ impl AnalogOut {
         println!("Starting audio output using i2c address {}.", i2c_address);
 
         let wave_func = Box::new(match wave {
+            Wave::Rectangle => rectangle_wave,
             Wave::Sine => sine_wave,
             Wave::Triangle => triangle_wave,
+            Wave::Saw => saw_wave,
         });
 
         let mut i2c = I2c::new()?;
@@ -96,7 +98,7 @@ impl AnalogOut {
     /// raw_value = 2047    => ~1.65V,
     /// raw_value = 4095    => 3.3V
     fn gen_voltage(&self, x: u64, t_micros: f64) -> Result<(), Box<dyn Error>> {
-        let raw_value = (*self.wave_func)(x as f64, t_micros);
+        let raw_value = (*self.wave_func)(x as f64, t_micros).round();
 
         let reg_data: [u8; 2] = self.dec_to_regdata(raw_value as u16);
 
@@ -158,12 +160,28 @@ fn current_time_millis() -> u64 {
     (current_time.sec as u64 * 1000) + (current_time.nsec as u64 / 1000 / 1000)
 }
 
+fn rectangle_wave(x: f64, t: f64) -> f64 {
+    if x < (t / 2.0) {
+        4095.0
+    } else {
+        0.0
+    }
+}
+
 fn sine_wave(x: f64, t: f64) -> f64 {
     2047.0 * (2.0 * PI / t * (x)).sin() + 2047.0
 }
 
 fn triangle_wave(x: f64, t: f64) -> f64 {
     (4095.0 / PI) * ((2.0 * t.powi(-1) * PI * x).sin()).asin() + 2047.0
+}
+
+fn saw_wave(x: f64, t: f64) -> f64 {
+    if x < (t / 2.0) {
+        4095.0 * x / t + 2047.0
+    } else {
+        4095.0 * x / t - 2047.0
+    }
 }
 
 #[cfg(test)]
@@ -195,5 +213,18 @@ mod tests {
         assert_eq!(triangle_wave(t / 2.0, t).round(), 2047.0);
         assert_eq!(triangle_wave(t * (3.0 / 4.0), t).round(), 0.0);
         assert_eq!(triangle_wave(t, t).round(), 2047.0);
+    }
+
+    #[test]
+    fn test_saw_wave() {
+        let t: f64 = 3.0;
+
+        assert_eq!(saw_wave(0.0, t), 2047.0);
+        assert_eq!(
+            saw_wave(t * (1.0 / 4.0), t).round(),
+            ((4095.0 - (2047.5 / 2.0)) as f64).round()
+        );
+        assert_eq!(saw_wave(t / 2.0, t), 0.5);
+        assert_eq!(saw_wave(t, t), 2048.0);
     }
 }
