@@ -93,7 +93,7 @@ impl AnalogOut {
         }))
     }
 
-    /// Generates sinus signal using i2c-bus with 0V to 3.3V.
+    /// Generates signal using i2c-bus with 0V to 3.3V.
     /// raw_value = 0       => 0V,
     /// raw_value = 2047    => ~1.65V,
     /// raw_value = 4095    => 3.3V
