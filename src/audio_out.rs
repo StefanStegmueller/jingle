@@ -88,7 +88,7 @@ impl AnalogOut {
     /// raw_value = 2047    => ~1.65V,
     /// raw_value = 4095    => 3.3V
     fn gen_voltage(&self, x: u64, t_micros: f64) -> Result<(), Box<dyn Error>> {
-        let raw_value = 2047.0 * (2.0 * PI / t_micros * (x as f64)).sin() + 2047.0;
+        let raw_value = sine_wave(x as f64, t_micros);
 
         let reg_data: [u8; 2] = self.dec_to_regdata(raw_value as u16);
 
@@ -148,4 +148,44 @@ fn current_time_millis() -> u64 {
 
     //Calculate milliseconds
     (current_time.sec as u64 * 1000) + (current_time.nsec as u64 / 1000 / 1000)
+}
+
+fn sine_wave(x: f64, t: f64) -> f64 {
+    2047.0 * (2.0 * PI / t * (x)).sin() + 2047.0
+}
+
+fn triangle_wave(x: f64, t: f64) -> f64 {
+    (4095.0 / PI) * ((2.0 * t.powi(-1) * PI * x).sin()).asin() + 2047.0
+}
+
+#[cfg(test)]
+mod tests {
+    // Note this useful idiom: importing names from outer (for mod tests) scope.
+    use super::*;
+
+    #[test]
+    fn test_sine_wave() {
+        let t: f64 = 3.0;
+
+        assert_eq!(sine_wave(0.0, t), 2047.0);
+        assert_eq!(sine_wave(t * (1.0 / 4.0), t).round(), 4094.0);
+        assert_eq!(sine_wave(t / 2.0, t).round(), 2047.0);
+        assert_eq!(sine_wave(t * (3.0 / 4.0), t).round(), 0.0);
+        assert_eq!(sine_wave(t, t).round(), 2047.0);
+    }
+
+    #[test]
+    fn test_triangle_wave() {
+        let t: f64 = 3.0;
+
+        assert_eq!(triangle_wave(0.0, t), 2047.0);
+        assert_eq!(
+            triangle_wave(t * (1.0 / 8.0), t).round(),
+            ((4095.0 - (2047.5 / 2.0)) as f64).round()
+        );
+        assert_eq!(triangle_wave(t * (1.0 / 4.0), t).round(), 4095.0);
+        assert_eq!(triangle_wave(t / 2.0, t).round(), 2047.0);
+        assert_eq!(triangle_wave(t * (3.0 / 4.0), t).round(), 0.0);
+        assert_eq!(triangle_wave(t, t).round(), 2047.0);
+    }
 }
