@@ -11,12 +11,21 @@ arg_enum! {
     }
 }
 
+arg_enum! {
+    #[derive(Debug)]
+    pub enum Wave {
+        Sine,
+        Triangle
+    }
+}
+
 pub struct Config {
     pub filename: String,
     pub mode: Mode,
     pub gpio: u8,
     pub duty_cycle: u8,
     pub i2c_address: u16,
+    pub wave: Wave,
 }
 
 impl Config {
@@ -31,7 +40,11 @@ impl Config {
                     .takes_value(true)
                     .help("Sets the jingle file to use"),
             )
-            .arg(Arg::from_usage("<MODE> 'Set output mode'").possible_values(&Mode::variants()))
+            .arg(
+                Arg::from_usage("<MODE> 'Set output mode'")
+                    .possible_values(&Mode::variants())
+                    .case_insensitive(true),
+            )
             .arg(
                 Arg::with_name("gpio")
                     .short("g")
@@ -58,6 +71,15 @@ impl Config {
                     .default_value("62")
                     .help("Sets the i2c address (hex) for dac to use"),
             )
+            .arg(
+                Arg::with_name("wave")
+                    .short("w")
+                    .long("wave")
+                    .possible_values(&Wave::variants())
+                    .case_insensitive(true)
+                    .default_value("Sine")
+                    .help("Sets the wave form for analog output"),
+            )
             .get_matches();
 
         let filename = matches.value_of("JINGLEFILE").unwrap();
@@ -75,12 +97,15 @@ impl Config {
             .iter()
             .fold(0, |acc, x| acc * 10 + x) as u16;
 
+        let wave = value_t!(matches.value_of("wave"), Wave).unwrap();
+
         Ok(Config {
             filename: file_name_str,
             mode,
             gpio,
             duty_cycle,
             i2c_address,
+            wave,
         })
     }
 }

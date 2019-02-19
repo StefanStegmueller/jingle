@@ -34,7 +34,7 @@ fn main() {
 fn run(config: config::Config) -> Result<(), Box<dyn Error>> {
     let output: Box<AudioOut> = match config.mode {
         Mode::Digital => DigitalOut::new(config.gpio, config.duty_cycle)?,
-        Mode::Analog => AnalogOut::new(config.i2c_address)?,
+        Mode::Analog => AnalogOut::new(config.i2c_address, config.wave)?,
     };
 
     println!("Using jingle of file {}.", config.filename);

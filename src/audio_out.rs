@@ -1,3 +1,4 @@
+use super::config::Wave;
 use super::file_reader::Note;
 use super::notes;
 
@@ -16,6 +17,7 @@ pub struct DigitalOut {
 
 pub struct AnalogOut {
     i2c: RefCell<I2c>,
+    wave_func: Box<Fn(f64, f64) -> f64>,
 }
 
 pub trait AudioOut {
@@ -39,7 +41,7 @@ impl DigitalOut {
             duty: duty,
         }))
     }
-
+ 
     fn gen_period(&self, t_high_micros: f64, t_low_micros: f64) {
         self.pin.borrow_mut().set_high();
         thread::sleep(Duration::from_micros(t_high_micros as u64));
@@ -72,14 +74,20 @@ impl AudioOut for DigitalOut {
 }
 
 impl AnalogOut {
-    pub fn new(i2c_address: u16) -> Result<(Box<AnalogOut>), Box<dyn Error>> {
+    pub fn new(i2c_address: u16, wave: Wave) -> Result<(Box<AnalogOut>), Box<dyn Error>> {
         println!("Starting audio output using i2c address {}.", i2c_address);
+
+        let wave_func = Box::new(match wave {
+            Wave::Sine => sine_wave,
+            Wave::Triangle => triangle_wave,
+        });
 
         let mut i2c = I2c::new()?;
         i2c.set_slave_address(i2c_address)?;
 
         Ok(Box::new(AnalogOut {
             i2c: RefCell::new(i2c),
+            wave_func,
         }))
     }
 
@@ -88,7 +96,7 @@ impl AnalogOut {
     /// raw_value = 2047    => ~1.65V,
     /// raw_value = 4095    => 3.3V
     fn gen_voltage(&self, x: u64, t_micros: f64) -> Result<(), Box<dyn Error>> {
-        let raw_value = sine_wave(x as f64, t_micros);
+        let raw_value = (*self.wave_func)(x as f64, t_micros);
 
         let reg_data: [u8; 2] = self.dec_to_regdata(raw_value as u16);
 
