@@ -14,7 +14,7 @@ arg_enum! {
 arg_enum! {
     #[derive(Debug)]
     pub enum Wave {
-        Rectangle,
+        Square,
         Sine,
         Triangle,
         Saw,
@@ -79,7 +79,7 @@ impl Config {
                     .long("wave")
                     .possible_values(&Wave::variants())
                     .case_insensitive(true)
-                    .default_value("Rectangle")
+                    .default_value("Square")
                     .help("Sets the wave form for analog output"),
             )
             .get_matches();
@@ -94,10 +94,12 @@ impl Config {
         let duty_cycle = value_t!(matches, "duty", u8).unwrap();
 
         let i2c_address_str = matches.value_of("i2caddress").unwrap();
-        let i2c_address = hex::decode(i2c_address_str)
-            .unwrap()
-            .iter()
-            .fold(0, |acc, x| acc * 10 + x) as u16;
+        let i2c_address = u16::from(
+            hex::decode(i2c_address_str)
+                .unwrap()
+                .iter()
+                .fold(0, |acc, x| acc * 10 + x),
+        );
 
         let wave = value_t!(matches.value_of("wave"), Wave).unwrap();
 
@@ -122,11 +124,12 @@ fn is_duty(val: String) -> Result<(), String> {
         }
     };
 
-    match duty_cycle == 0 || duty_cycle >= 100 {
-        true => Err(String::from(
+    if duty_cycle == 0 || duty_cycle >= 100 {
+        Err(String::from(
             "Duty cycle has to be a value between 0 and 100",
-        )),
-        false => Ok(()),
+        ))
+    } else {
+        Ok(())
     }
 }
 

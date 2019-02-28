@@ -32,7 +32,7 @@ pub fn read(filename: &str) -> Result<(Vec<Note>), Box<Error>> {
         });
 
         let note = Note {
-            hz: hz,
+            hz,
             duration: record.duration,
         };
 

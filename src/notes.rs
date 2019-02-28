@@ -146,7 +146,7 @@ lazy_static! {
 
 pub fn parse_note(note: &str) -> Result<(f64), ParseError> {
     match NOTE_FREQUENCIES.get(note) {
-        Some(f) => Ok(f.clone()),
+        Some(f) => Ok(*f),
         None => {
             let error_msg: &str = "Can't parse note description: ";
             Err(ParseError::new(&format!("{}{}", error_msg, note)))

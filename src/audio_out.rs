@@ -38,7 +38,7 @@ impl DigitalOut {
 
         Ok(Box::new(DigitalOut {
             pin: RefCell::new(pin),
-            duty: duty,
+            duty,
         }))
     }
 
@@ -58,9 +58,9 @@ impl AudioOut for DigitalOut {
 
     fn gen_frequency(&self, f_hz: f64, duration_millis: u64) -> Result<(), Box<dyn Error>> {
         let t = 1.00 / f_hz;
-        let t_micros = t * 1000000.0;
-        let t_high_micros = t_micros * (self.duty as f64) / 100.00;
-        let t_low_micros = t_micros * (100.00 - (self.duty as f64)) / 100.00;
+        let t_micros = t * 1_000_000.0;
+        let t_high_micros = t_micros * (f64::from(self.duty)) / 100.00;
+        let t_low_micros = t_micros * (100.00 - (f64::from(self.duty))) / 100.00;
 
         let start_time = current_time_millis();
         let end_time = start_time + duration_millis;
@@ -78,7 +78,7 @@ impl AnalogOut {
         println!("Starting audio output using i2c address {}.", i2c_address);
 
         let wave_func = Box::new(match wave {
-            Wave::Rectangle => rectangle_wave,
+            Wave::Square => square_wave,
             Wave::Sine => sine_wave,
             Wave::Triangle => triangle_wave,
             Wave::Saw => saw_wave,
@@ -119,13 +119,13 @@ impl AudioOut for AnalogOut {
 
     fn gen_frequency(&self, f_hz: f64, duration_millis: u64) -> Result<(), Box<dyn Error>> {
         let t = 1.00 / f_hz;
-        let t_micros = t * 1000000.0;
+        let t_micros = t * 1_000_000.0;
 
         let start_time = current_time_millis();
         let end_time = start_time + duration_millis;
 
         while current_time_millis() < end_time {
-            let x = current_time_millis() - start_time;
+            let x = (current_time_millis() - start_time) * 1000;
 
             self.gen_voltage(x, t_micros)?;
         }
@@ -160,8 +160,8 @@ fn current_time_millis() -> u64 {
     (current_time.sec as u64 * 1000) + (current_time.nsec as u64 / 1000 / 1000)
 }
 
-fn rectangle_wave(x: f64, t: f64) -> f64 {
-    if x < (t / 2.0) {
+fn square_wave(x: f64, t: f64) -> f64 {
+    if (x % t) < (t / 2.0) {
         4095.0
     } else {
         0.0
