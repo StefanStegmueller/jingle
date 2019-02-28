@@ -3,6 +3,11 @@
 An experimental project to play jingles with a Raspberry Pi and to fiddle with the rust language.
 The program generates audio signals using the Raspberry Pi 3 Modell B+ hardware.
 
+## Build
+```
+cargo build
+```
+
 ## Musical notation
 
 Jingles are noted in rather primitive way.
