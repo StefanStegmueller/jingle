@@ -11,7 +11,7 @@ cargo build
 ## Musical notation
 
 Jingles are noted in rather primitive way.
-Frequencies in are mapped to musical notes (e.g note:C4 -> frequency: 261.63).
+Frequencies in are mapped to musical notes (e.g note: C4 -> frequency: 261.63).
 The duration of a signal is noted in milliseconds.
 Rows of a csv file are looped to generate frequencies for a specific duration.
 
