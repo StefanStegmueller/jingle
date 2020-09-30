@@ -34,7 +34,7 @@ In Analog mode a MCP4725 12-Bit DAC breakout board gets controlled via i2c-bus. 
 
 ## Findings during implementation
 
-Due the multitasking nature of the raspbian os for the Raspberry Pi precize frequency generation is not possible. The precision in digital output mode seems sufficient. The sample rate for Analog output mode via i2c on the other hand is way too slow to generate acceptable analog signals. This seemed pretty obvious with a little calculation beforehand but I had hopes. Afterall it was a fun little project and maybe this helps someone in some way.
+Due the multitasking nature of the raspbian os for the Raspberry Pi precise frequency generation is not possible. The precision in digital output mode seems sufficient. The sample rate for Analog output mode via i2c on the other hand is way too slow to generate acceptable analog signals. This seemed pretty obvious with a little calculation beforehand but I had hopes. Afterall it was a fun little project and maybe this helps someone in some way.
 
 ## Command Line Usage
 
